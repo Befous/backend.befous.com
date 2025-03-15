@@ -34,4 +34,4 @@ jobs:
             --trigger-http \
             --timeout=360s \
             --allow-unauthenticated \
-            --set-env-vars mongoenv='${{ secrets.MONGOENV }}', privatekey='${{ secrets.PRIVATEKEY }}', publickey='${{ secrets.PUBLICKEY }}'
+            --set-env-vars mongoenv='${{ secrets.MONGOENV }}',privatekey='${{ secrets.PRIVATEKEY }}',publickey='${{ secrets.PUBLICKEY }}'
