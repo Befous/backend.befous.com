@@ -27,11 +27,11 @@ jobs:
       - name: Deploy to Google Cloud Functions
         run: |
           gcloud functions deploy befous \
+            --region=asia-southeast2 \
+            --allow-unauthenticated \
+            --entry-point=Befous \
+            --gen2 \
             --runtime=go123 \
             --trigger-http \
-            --entry-point=Befous \
-            --region=asia-southeast2 \
-            --trigger-http \
             --timeout=360s \
-            --allow-unauthenticated \
             --set-env-vars mongoenv='${{ secrets.MONGOENV }}',privatekey='${{ secrets.PRIVATEKEY }}',publickey='${{ secrets.PUBLICKEY }}'
