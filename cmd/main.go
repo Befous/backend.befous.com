@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/Befous/api.befous.com/middleware"
@@ -10,10 +9,7 @@ import (
 )
 
 func main() {
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatalln(err)
-	}
+	_ = godotenv.Load(".env")
 	app := http.NewServeMux()
 	routes.Route(app)
 	server := http.Server{
