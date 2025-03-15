@@ -22,11 +22,11 @@ jobs:
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
-          project_id: your-gcp-project-id
+          project_id: befous
 
       - name: Deploy to Google Cloud Functions
         run: |
-          gcloud functions deploy your-function-name \
+          gcloud functions deploy befous \
             --runtime=go123 \
             --trigger-http \
             --entry-point=Befous \
