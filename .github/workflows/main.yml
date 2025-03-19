@@ -27,7 +27,7 @@ jobs:
       - name: Deploy to Google Cloud Functions
         run: |
           gcloud functions deploy api \
-            --region=asia-southeast2 \
+            --region=asia-southeast1 \
             --allow-unauthenticated \
             --entry-point=Befous \
             --gen2 \
