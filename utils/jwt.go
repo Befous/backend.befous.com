@@ -7,21 +7,28 @@ import (
 	"encoding/pem"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"strings"
+	"time"
+
+	"github.com/Befous/api.befous.com/models"
+	"github.com/golang-jwt/jwt/v5"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// ReadPrivateKeyFromFile reads an RSA private key from a file
 func ReadPrivateKeyFromFile(filename string) (*rsa.PrivateKey, error) {
-	var privateKey *rsa.PrivateKey
 	privateKeyBytes, err := os.ReadFile(filename)
 	if err != nil {
-		log.Fatalf("ioutil.ReadFile(private.pem): %v", err)
+		return nil, fmt.Errorf("failed to read private key file %s: %w", filename, err)
 	}
 	privateBlock, _ := pem.Decode(privateKeyBytes)
-	privateKey, err = x509.ParsePKCS1PrivateKey(privateBlock.Bytes)
+	if privateBlock == nil {
+		return nil, fmt.Errorf("failed to decode PEM block containing private key")
+	}
+	privateKey, err := x509.ParsePKCS1PrivateKey(privateBlock.Bytes)
 	if err != nil {
-		log.Fatalf("x509.ParsePKCS1PrivateKey: %v", err)
+		return nil, fmt.Errorf("failed to parse private key: %w", err)
 	}
 
 	return privateKey, nil
@@ -30,16 +37,19 @@ func ReadPrivateKeyFromFile(filename string) (*rsa.PrivateKey, error) {
 func ReadPublicKeyFromFile(filename string) (*rsa.PublicKey, error) {
 	publicKeyBytes, err := os.ReadFile(filename)
 	if err != nil {
-		log.Fatalf("ioutil.ReadFile(public.pem): %v", err)
+		return nil, fmt.Errorf("failed to read public key file %s: %w", filename, err)
 	}
 	publicBlock, _ := pem.Decode(publicKeyBytes)
+	if publicBlock == nil {
+		return nil, fmt.Errorf("failed to decode PEM block containing public key")
+	}
 	pub, err := x509.ParsePKIXPublicKey(publicBlock.Bytes)
 	if err != nil {
-		log.Fatalf("x509.ParsePKIXPublicKey: %v", err)
+		return nil, fmt.Errorf("failed to parse public key: %w", err)
 	}
 	publicKey, ok := pub.(*rsa.PublicKey)
 	if !ok {
-		log.Fatalf("not ok: %v", err)
+		return nil, fmt.Errorf("parsed key is not an RSA public key")
 	}
 	return publicKey, nil
 }
@@ -66,8 +76,8 @@ func ReadPrivateKeyFromEnv(private string) (*rsa.PrivateKey, error) {
 	return privateKey, nil
 }
 
-func ReadPublicKeyFromEnv(oublic string) (*rsa.PublicKey, error) {
-	publicKeyPEM := os.Getenv(oublic)
+func ReadPublicKeyFromEnv(public string) (*rsa.PublicKey, error) {
+	publicKeyPEM := os.Getenv(public)
 	if publicKeyPEM == "" {
 		log.Fatalf("PUBLIC_KEY environment variable not set")
 	}
@@ -153,11 +163,62 @@ func GenerateRSAEnv(privateKeyPath string) (string, string, error) {
 }
 
 func CleanPEMString(pem string) string {
-	// pem = strings.ReplaceAll(pem, "-----BEGIN RSA PRIVATE KEY-----", "")
-	// pem = strings.ReplaceAll(pem, "-----END RSA PRIVATE KEY-----", "")
-	// pem = strings.ReplaceAll(pem, "-----BEGIN PUBLIC KEY-----", "")
-	// pem = strings.ReplaceAll(pem, "-----END PUBLIC KEY-----", "")
 	pem = strings.ReplaceAll(pem, "\n", `\n`)
-	// pem = strings.ReplaceAll(pem, "\r", `\r`)
 	return pem
+}
+
+func SignedJWT(mongoenv *mongo.Database, user models.Users, userAgent string) (string, error) {
+	datauser := FindUser(mongoenv, user)
+	expirationTime := time.Now().Add(time.Hour * 2).Unix()
+	claims := jwt.MapClaims{
+		"username": user.Username,
+		"nama":     datauser.Nama,
+		"no_telp":  datauser.No_Telp,
+		"email":    datauser.Email,
+		"role":     datauser.Role,
+		"exp":      expirationTime,
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+
+	privateKey, err := ReadPrivateKeyFromEnv("privatekey")
+	if err != nil {
+		return "", fmt.Errorf("error loading private key: %v", err)
+	}
+
+	t, err := token.SignedString(privateKey)
+	if err != nil {
+		return "", fmt.Errorf("error signing string: %v", err)
+	}
+
+	session := models.Session{
+		Username:   user.Username,
+		Token:      t,
+		User_Agent: userAgent,
+		Expire_At:  time.Unix(expirationTime, 0),
+	}
+	InsertSession(SetConnection(), session)
+	return t, nil
+}
+
+func DecodeJWT(r *http.Request) (models.Users, error) {
+	var session models.Users
+	tokenString := r.Header.Get("Authorization")
+	parts := strings.Split(tokenString, " ")
+	tokenString = parts[1]
+	token, _ := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return ReadPublicKeyFromEnv("publickey")
+	})
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok || !token.Valid {
+		return session, fmt.Errorf("invalid token")
+	}
+
+	session.Username = claims["username"].(string)
+	session.Nama = claims["nama"].(string)
+	session.No_Telp = claims["no_telp"].(string)
+	session.Email = claims["email"].(string)
+	session.Role = claims["role"].(string)
+
+	return session, nil
 }
