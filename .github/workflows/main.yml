@@ -34,4 +34,4 @@ jobs:
             --runtime=go123 \
             --trigger-http \
             --timeout=360s \
-            --set-env-vars mongoenv='${{ secrets.MONGOENV }}',privatekey='${{ secrets.PRIVATEKEY }}',publickey='${{ secrets.PUBLICKEY }}'
+            --set-env-vars mongoenv='${{ secrets.MONGOENV }}',private_key='${{ secrets.PRIVATE_KEY }}',public_key='${{ secrets.PUBLIC_KEY }}'
