@@ -36,18 +36,31 @@ func IsAuthenticated(next http.Handler) http.Handler {
 		})
 		if err != nil || !token.Valid {
 			utils.WriteJSONResponse(w, http.StatusUnauthorized, models.Pesan{
-				Message: "Invalid or expired token",
+				Message: "Invalid token",
 			})
 			return
 		}
 		claims, ok := token.Claims.(jwt.MapClaims)
-		if !ok || claims["username"] == nil {
+		if !ok || claims["sub"] == nil {
 			utils.WriteJSONResponse(w, http.StatusUnauthorized, models.Pesan{
 				Message: "Invalid token claims",
 			})
 			return
 		}
-		userID := claims["username"].(string)
+		exp, ok := claims["exp"].(float64)
+		if !ok {
+			utils.WriteJSONResponse(w, http.StatusUnauthorized, models.Pesan{
+				Message: "Invalid token expiration",
+			})
+			return
+		}
+		if time.Now().Unix() > int64(exp) {
+			utils.WriteJSONResponse(w, http.StatusUnauthorized, models.Pesan{
+				Message: "Token has expired",
+			})
+			return
+		}
+		userID := claims["sub"].(string)
 		session := utils.GetSession(utils.SetConnection(), tokenString, userID)
 		if time.Now().After(session.Expire_At) {
 			utils.WriteJSONResponse(w, http.StatusUnauthorized, models.Pesan{
