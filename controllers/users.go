@@ -15,13 +15,7 @@ func Root(w http.ResponseWriter, r *http.Request) {
 
 func Session(w http.ResponseWriter, r *http.Request) {
 	var session models.Users
-	session, err := utils.DecodeJWT(r)
-	if err != nil {
-		utils.WriteJSONResponse(w, http.StatusBadRequest, models.Pesan{
-			Message: "Error decode token: " + err.Error(),
-		})
-		return
-	}
+	session = utils.DecodeJWT(r)
 
 	utils.WriteJSONResponse(w, http.StatusOK, models.Pesan{
 		Message: "Berikut data session anda",
