@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Befous/api.befous.com/models"
-	"github.com/Befous/api.befous.com/utils"
+	"github.com/Befous/backend.befous.com/models"
+	"github.com/Befous/backend.befous.com/utils"
 	"github.com/golang-jwt/jwt/v5"
 )
 

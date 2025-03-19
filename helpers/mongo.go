@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Befous/api.befous.com/models"
+	"github.com/Befous/backend.befous.com/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"

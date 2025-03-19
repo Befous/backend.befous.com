@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Befous/api.befous.com/models"
+	"github.com/Befous/backend.befous.com/models"
 )
 
 func ParseDate(dateStr string, isEndDate bool) (time.Time, error) {

@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Befous/api.befous.com/models"
+	"github.com/Befous/backend.befous.com/models"
 	"github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/mongo"
 )

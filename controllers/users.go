@@ -3,8 +3,8 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/Befous/api.befous.com/models"
-	"github.com/Befous/api.befous.com/utils"
+	"github.com/Befous/backend.befous.com/models"
+	"github.com/Befous/backend.befous.com/utils"
 )
 
 func Root(w http.ResponseWriter, r *http.Request) {

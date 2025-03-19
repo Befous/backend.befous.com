@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"github.com/Befous/api.befous.com/helpers"
-	"github.com/Befous/api.befous.com/models"
+	"github.com/Befous/backend.befous.com/helpers"
+	"github.com/Befous/backend.befous.com/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )

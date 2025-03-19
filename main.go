@@ -3,8 +3,8 @@ package gcf
 import (
 	"net/http"
 
-	"github.com/Befous/api.befous.com/middleware"
-	"github.com/Befous/api.befous.com/routes"
+	"github.com/Befous/backend.befous.com/middleware"
+	"github.com/Befous/backend.befous.com/routes"
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 )
 

@@ -3,8 +3,8 @@ package routes
 import (
 	"net/http"
 
-	"github.com/Befous/api.befous.com/controllers"
-	"github.com/Befous/api.befous.com/middleware"
+	"github.com/Befous/backend.befous.com/controllers"
+	"github.com/Befous/backend.befous.com/middleware"
 )
 
 func Route(router *http.ServeMux) {
