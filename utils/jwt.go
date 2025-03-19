@@ -168,15 +168,12 @@ func CleanPEMString(pem string) string {
 }
 
 func SignedJWT(mongoenv *mongo.Database, user models.Users, userAgent string) (string, error) {
-	datauser := FindUser(mongoenv, user)
 	expirationTime := time.Now().Add(time.Hour * 2).Unix()
+	issuedTime := time.Now().Unix()
 	claims := jwt.MapClaims{
-		"username": user.Username,
-		"nama":     datauser.Nama,
-		"no_telp":  datauser.No_Telp,
-		"email":    datauser.Email,
-		"role":     datauser.Role,
-		"exp":      expirationTime,
+		"sub": user.Username,
+		"exp": expirationTime,
+		"iat": issuedTime,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
@@ -196,29 +193,21 @@ func SignedJWT(mongoenv *mongo.Database, user models.Users, userAgent string) (s
 		Token:      t,
 		User_Agent: userAgent,
 		Expire_At:  time.Unix(expirationTime, 0),
+		Issued_At:  time.Unix(issuedTime, 0),
 	}
 	InsertSession(SetConnection(), session)
 	return t, nil
 }
 
-func DecodeJWT(r *http.Request) (models.Users, error) {
-	var session models.Users
+func DecodeJWT(r *http.Request) (datauser models.Users) {
 	tokenString := r.Header.Get("Authorization")
 	parts := strings.Split(tokenString, " ")
 	tokenString = parts[1]
 	token, _ := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return ReadPublicKeyFromEnv("public_key")
 	})
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok || !token.Valid {
-		return session, fmt.Errorf("invalid token")
-	}
-
-	session.Username = claims["username"].(string)
-	session.Nama = claims["nama"].(string)
-	session.No_Telp = claims["no_telp"].(string)
-	session.Email = claims["email"].(string)
-	session.Role = claims["role"].(string)
-
-	return session, nil
+	claims := token.Claims.(jwt.MapClaims)
+	username := claims["sub"].(string)
+	datauser = FindUser(SetConnection(), models.Users{Username: username})
+	return datauser
 }
