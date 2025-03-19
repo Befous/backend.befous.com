@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/Befous/api.befous.com/models"
 	"github.com/Befous/api.befous.com/utils"
@@ -31,11 +32,26 @@ func IsAuthenticated(next http.Handler) http.Handler {
 			if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}
-			return utils.ReadPublicKeyFromEnv("PUBLIC_KEY")
+			return utils.ReadPublicKeyFromEnv("publickey")
 		})
 		if err != nil || !token.Valid {
 			utils.WriteJSONResponse(w, http.StatusUnauthorized, models.Pesan{
 				Message: "Invalid or expired token",
+			})
+			return
+		}
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok || claims["username"] == nil {
+			utils.WriteJSONResponse(w, http.StatusUnauthorized, models.Pesan{
+				Message: "Invalid token claims",
+			})
+			return
+		}
+		userID := claims["username"].(string)
+		session := utils.GetSession(utils.SetConnection(), tokenString, userID)
+		if time.Now().After(session.Expire_At) {
+			utils.WriteJSONResponse(w, http.StatusUnauthorized, models.Pesan{
+				Message: "Session invalid",
 			})
 			return
 		}
