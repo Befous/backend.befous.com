@@ -181,7 +181,7 @@ func SignedJWT(mongoenv *mongo.Database, user models.Users, userAgent string) (s
 
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 
-	privateKey, err := ReadPrivateKeyFromEnv("privatekey")
+	privateKey, err := ReadPrivateKeyFromEnv("private_key")
 	if err != nil {
 		return "", fmt.Errorf("error loading private key: %v", err)
 	}
@@ -207,7 +207,7 @@ func DecodeJWT(r *http.Request) (models.Users, error) {
 	parts := strings.Split(tokenString, " ")
 	tokenString = parts[1]
 	token, _ := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return ReadPublicKeyFromEnv("publickey")
+		return ReadPublicKeyFromEnv("public_key")
 	})
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok || !token.Valid {

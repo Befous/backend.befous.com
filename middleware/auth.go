@@ -32,7 +32,7 @@ func IsAuthenticated(next http.Handler) http.Handler {
 			if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}
-			return utils.ReadPublicKeyFromEnv("publickey")
+			return utils.ReadPublicKeyFromEnv("public_key")
 		})
 		if err != nil || !token.Valid {
 			utils.WriteJSONResponse(w, http.StatusUnauthorized, models.Pesan{
