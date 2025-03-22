@@ -7,8 +7,6 @@ import (
 	"net/http"
 )
 
-const imageURL = "https://mangadex.org/covers/a08cd14f-68d4-4942-9305-2fe9d7d0339e/d59ecfc6-2391-44f6-9d45-361565cc343e.jpg.512.jpg"
-
 type Relationship struct {
 	ID   string `json:"id"`
 	Type string `json:"type"`
