@@ -9,7 +9,7 @@ import (
 
 func Route(router *http.ServeMux) {
 	router.HandleFunc("GET /", controllers.Root)
-	router.HandleFunc("GET /mangadexcover/{id_manga}", controllers.CoverMangadex)
 	router.HandleFunc("POST /login", controllers.Login)
 	router.Handle("GET /session", middleware.IsAuthenticated(http.HandlerFunc(controllers.Session)))
+	router.HandleFunc("GET /mangadex/cover/{id_manga}", controllers.CoverMangadex)
 }

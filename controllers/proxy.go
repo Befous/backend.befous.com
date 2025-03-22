@@ -81,7 +81,7 @@ func CoverMangadex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	imageURL := fmt.Sprintf("https://mangadex.org/covers/%s/%s.512.jpg", mangaID, fileName)
+	imageURL := fmt.Sprintf("https://uploads.mangadex.org/covers/%s/%s.512.jpg", mangaID, fileName)
 	resp, err := http.Get(imageURL)
 	if err != nil {
 		http.Error(w, "Failed to fetch image", http.StatusInternalServerError)
