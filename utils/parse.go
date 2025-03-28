@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"math/rand"
 	"net/http"
 	"time"
 
@@ -53,4 +54,16 @@ func GetUrlQuery(r *http.Request, queryKey string, defaultValue string) string {
 		return defaultValue
 	}
 	return v
+}
+
+const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+func RandomString(length int) string {
+	src := rand.NewSource(time.Now().UnixNano()) // Sumber random unik
+	r := rand.New(src)                           // Generator lokal
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = charset[r.Intn(len(charset))]
+	}
+	return string(b)
 }
