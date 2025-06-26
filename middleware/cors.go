@@ -7,10 +7,7 @@ import (
 
 var headers = []string{
 	"Content-Type",
-	"Content-Disposition",
 	"Authorization",
-	"Accept",
-	"Origin",
 }
 
 func Cors(next http.Handler) http.Handler {
