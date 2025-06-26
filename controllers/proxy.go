@@ -5,6 +5,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sync"
+	"time"
+
+	"github.com/Befous/backend.befous.com/models"
+	"github.com/Befous/backend.befous.com/utils"
 )
 
 type Relationship struct {
@@ -25,6 +30,13 @@ type CoverResponse struct {
 		} `json:"attributes"`
 	} `json:"data"`
 }
+
+var (
+	cacheData      []byte
+	cacheTimestamp time.Time
+	cacheMutex     sync.Mutex
+	cacheDuration  = 10 * time.Minute // Durasi cache aktif
+)
 
 func getCoverFileName(mangaID string) (string, error) {
 	mangaURL := fmt.Sprintf("https://api.mangadex.org/manga/%s", mangaID)
@@ -93,4 +105,51 @@ func CoverMangadex(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "Failed to send image", http.StatusInternalServerError)
 	}
+}
+
+func IpapiProxyHandler(w http.ResponseWriter, r *http.Request) {
+	cacheMutex.Lock()
+	defer cacheMutex.Unlock()
+
+	// Cek apakah cache masih berlaku
+	if time.Since(cacheTimestamp) < cacheDuration && cacheData != nil {
+		w.Header().Set("Content-Type", "application/json")
+		utils.WriteJSONResponse(w, http.StatusOK, models.Pesan{
+			Data: json.RawMessage(cacheData),
+		})
+		return
+	}
+
+	// Ambil dari ipapi.co karena cache sudah kadaluarsa
+	resp, err := http.Get("https://ipapi.co/json/")
+	if err != nil {
+		http.Error(w, "Gagal mengambil data dari ipapi.co", http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		http.Error(w, "Gagal membaca data response", http.StatusInternalServerError)
+		return
+	}
+
+	// Validasi apakah body adalah JSON
+	var js json.RawMessage
+	if err := json.Unmarshal(bodyBytes, &js); err != nil {
+		utils.WriteJSONResponse(w, resp.StatusCode, models.Pesan{
+			Message: string(bodyBytes), // kirim sebagai string biasa
+		})
+		return
+	}
+
+	// Simpan ke cache
+	cacheData = bodyBytes
+	cacheTimestamp = time.Now()
+
+	// Kirim ke client
+	w.Header().Set("Content-Type", "application/json")
+	utils.WriteJSONResponse(w, resp.StatusCode, models.Pesan{
+		Data: js,
+	})
 }
