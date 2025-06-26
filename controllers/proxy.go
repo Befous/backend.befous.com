@@ -121,7 +121,7 @@ func IpapiProxyHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Ambil dari ipapi.co karena cache sudah kadaluarsa
-	resp, err := http.Get("https://ipapi.co/json/")
+	resp, err := http.Get("http://ip-api.com/json/")
 	if err != nil {
 		http.Error(w, "Gagal mengambil data dari ipapi.co", http.StatusInternalServerError)
 		return
